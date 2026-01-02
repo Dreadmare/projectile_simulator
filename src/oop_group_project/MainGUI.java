@@ -41,6 +41,8 @@ public class MainGUI extends JFrame {
 	    this.setMinimumSize(new Dimension(500, 400));
 	    this.setLocationRelativeTo(null);
 	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    
+	    refreshTable();
 	}
 
 	private void initLayout() {
@@ -80,15 +82,15 @@ public class MainGUI extends JFrame {
 				StandardBall ball = new StandardBall(v,a);
 				double range = ball.calculateRange();
 
-				manager.addSimulation(ball);
-				Vector<Object> row = new Vector<>();
-				row.add("N/A"); //placeholder
-				row.add("Ball");
-				row.add(v);
-				row.add(a);
-				row.add(String.format("%.2f",range));
-				tableModel.addRow(row);
-
+				int newId = manager.addSimulationAndGetId(ball, range);
+		        tableModel.addRow(new Object[]{
+		            newId == -1 ? "Error" : newId, 
+		            "Ball", 
+		            v, 
+		            a, 
+		            String.format("%.2f", range)
+		        });
+		            
 			} catch (NumberFormatException ex) {
 				JOptionPane.showMessageDialog(this, "Input must be a number", "Input Error", JOptionPane.ERROR_MESSAGE);
 
