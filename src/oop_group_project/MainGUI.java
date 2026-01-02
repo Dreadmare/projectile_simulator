@@ -8,7 +8,10 @@ import java.awt.event.ActionListener;
 import java.util.Vector;
 
 public class MainGUI extends JFrame {
+	
 	private JTextField velocityField, angleField;
 	private JButton calculateBtn, saveBtn, clearBtn;
-	
+	private JTable historyTable;
+	private DefaultTableModel tableModel;
+	private DatabaseManager manager;
 }
