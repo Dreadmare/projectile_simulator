@@ -45,6 +45,33 @@ public class MainGUI extends JFrame {
 	}
 	
 	private void setupListeners() {
+		calculateBtn.addActionListener(e -> {
+			try {
+				double v = Double.parseDouble(velocityField.getText());
+				double a = Double.parseDouble(angleField.getText());
+				if (v < 0 || a < 0 || a > 90) {
+					throw new InvalidInputException("Please insert valid values");
+				}
+				
+				StandardBall ball = new StandardBall(v,a);
+				double range = ball.calculateRange();
+				
+				manager.addSimulation(ball);
+				Vector<Object> row = new Vector<>();
+				row.add("Ball");
+				row.add(v);
+				row.add(a);
+				row.add(String.format("%.2f",range));
+				tableModel.addRow(row);
+				
+			} catch (NumberFormatException ex) {
+				JOptionPane.showMessageDialog(this, "Input must be a number", "Input Error", JOptionPane.ERROR_MESSAGE);
+		
+			} catch (InvalidInputException ex) {
+				JOptionPane.showMessageDialog(this, ex.getMessage(), "Logic Error", JOptionPane.WARNING_MESSAGE);
+			}
+		});
+		
 		
 	}
 }
