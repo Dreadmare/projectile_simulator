@@ -98,28 +98,6 @@ public class MainGUI extends JFrame {
 				JOptionPane.showMessageDialog(this, ex.getMessage(), "Logic Error", JOptionPane.WARNING_MESSAGE);
 			}
 		});
-
-		saveBtn.addActionListener(e -> {
-		    int row = historyTable.getSelectedRow();
-		    if (row != -1) {
-		        try {
-		        	double v = Double.parseDouble(tableModel.getValueAt(row, 2).toString());
-		            double a = Double.parseDouble(tableModel.getValueAt(row, 3).toString());
-		            double r = Double.parseDouble(tableModel.getValueAt(row, 4).toString());
-		            
-		            StandardBall tempBall = new StandardBall(v, a);
-		            manager.saveToDatabase(tempBall, r); 
-		            JOptionPane.showMessageDialog(this, "Saved Successfully!");
-		            
-		            refreshTable();
-		            
-		        } catch (Exception ex) {
-		            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
-		        }
-		    } else {
-		        JOptionPane.showMessageDialog(this, "Please select a row first");
-		    }
-		});
 		
 		deleteBtn.addActionListener(e -> {
 			int selectedRow = historyTable.getSelectedRow();
