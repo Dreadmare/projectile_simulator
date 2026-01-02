@@ -50,4 +50,12 @@ public class DatabaseManager {
 		Statement stmt = conn.createStatement();
 		return stmt.executeQuery("SELECT * FROM results");
 	}
+	
+	public ResultSet searchByVelocity(double minVelocity) throws SQLException {
+		Connection conn = DriverManager.getConnection(url, user, password);
+		String query = "SELECT * FROM  results WHERE velocity >= ?";
+		PreparedStatement pstmt = conn.prepareStatement(query);
+		pstmt.setDouble(1, minVelocity);
+		return pstmt.executeQuery();
+	}
 }

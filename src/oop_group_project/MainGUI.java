@@ -5,48 +5,64 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.*;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.util.Vector;
 
+@SuppressWarnings("serial")
 public class MainGUI extends JFrame {
-	
+
 	private JTextField velocityField, angleField;
-	private JButton calculateBtn, saveBtn, clearBtn;
+	private JButton calculateBtn, saveBtn, clearBtn, deleteBtn, searchBtn;
 	private JTable historyTable;
 	private DefaultTableModel tableModel;
 	private DatabaseManager manager;
-	
+
 	public MainGUI() {
 		manager = new DatabaseManager();
-		setTitle("Projectile Trajectory Calculator");
-		setSize(500,400);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setLayout(new BorderLayout(10,10));
-		
-		JPanel inputPanel = new JPanel(new GridLayout(3,2,5,5));
-		inputPanel.add(new JLabel("Initial Velocity (m/s): "));
-		inputPanel.add(new JLabel("Angle (°): "));
-		angleField = new JTextField();
-		velocityField = new JTextField();
-		inputPanel.add(velocityField);
-		inputPanel.add(angleField);
-		
+
+		velocityField = new JTextField(10);
+		angleField = new JTextField(10);
 		calculateBtn = new JButton("Calculate");
-		clearBtn = new JButton("Clear");
-		inputPanel.add(calculateBtn);
-		inputPanel.add(clearBtn);
-		
-		String[] columns = {"Type","Velocity", "Angle", "Max Range (m)"};
+		saveBtn = new JButton("Save to DB");
+		searchBtn = new JButton("Search (Min Vel)");
+		deleteBtn = new JButton("Delete Selected");
+		clearBtn = new JButton("Clear Fields");
+
+		String[] columns = {"ID","Type","Velocity", "Angle", "Max Range (m)"};
 		tableModel = new DefaultTableModel(columns,0);
 		historyTable = new JTable(tableModel);
-		
-		saveBtn = new JButton("Save");
-		add(inputPanel,BorderLayout.NORTH);
-		add(new JScrollPane(historyTable),BorderLayout.CENTER);
-		add(saveBtn,BorderLayout.SOUTH);
-		
+
+		initLayout();
 		setupListeners();
 	}
-	
+
+	private void initLayout() {
+		setLayout(new BorderLayout(10, 10));
+
+		// Top Panel: Inputs
+		JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+		inputPanel.setBorder(BorderFactory.createTitledBorder("Simulation Parameters"));
+		inputPanel.add(new JLabel("Initial Velocity (m/s):"));
+		inputPanel.add(velocityField);
+		inputPanel.add(new JLabel("Launch Angle (0-90°):"));
+		inputPanel.add(angleField);
+		inputPanel.add(calculateBtn);
+		inputPanel.add(clearBtn);
+
+		// Bottom Panel: Database Actions
+		JPanel actionPanel = new JPanel();
+		actionPanel.add(saveBtn);
+		actionPanel.add(searchBtn);
+		actionPanel.add(deleteBtn);
+
+		// Adding to Frame
+		add(inputPanel, BorderLayout.NORTH);
+		add(new JScrollPane(historyTable), BorderLayout.CENTER);
+		add(actionPanel, BorderLayout.SOUTH);
+	}
+
 	private void setupListeners() {
 		calculateBtn.addActionListener(e -> {
 			try {
@@ -55,39 +71,40 @@ public class MainGUI extends JFrame {
 				if (v < 0 || a < 0 || a > 90) {
 					throw new InvalidInputException("Please insert valid values");
 				}
-				
+
 				StandardBall ball = new StandardBall(v,a);
 				double range = ball.calculateRange();
-				
+
 				manager.addSimulation(ball);
 				Vector<Object> row = new Vector<>();
+				row.add("N/A"); //placeholder
 				row.add("Ball");
 				row.add(v);
 				row.add(a);
 				row.add(String.format("%.2f",range));
 				tableModel.addRow(row);
-				
+
 			} catch (NumberFormatException ex) {
 				JOptionPane.showMessageDialog(this, "Input must be a number", "Input Error", JOptionPane.ERROR_MESSAGE);
-		
+
 			} catch (InvalidInputException ex) {
 				JOptionPane.showMessageDialog(this, ex.getMessage(), "Logic Error", JOptionPane.WARNING_MESSAGE);
 			}
 		});
-		
+
 		saveBtn.addActionListener(e -> {
-			
+
 			int row = historyTable.getSelectedRow();
 			if (row != -1) {
 				try {
 					double v = (double) tableModel.getValueAt(row, 1);
 					double a = (double) tableModel.getValueAt(row, 2);
 					double r = Double.parseDouble((String) tableModel.getValueAt(row, 3));
-					
+
 					StandardBall tempBall = new StandardBall(v,a);
 					manager.saveToDatabase(tempBall, r);
 					JOptionPane.showMessageDialog(this, "Saved");
-					
+
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
 				}
@@ -95,8 +112,47 @@ public class MainGUI extends JFrame {
 				JOptionPane.showMessageDialog(this, "Please select a row first");
 			}
 		});
+
+		deleteBtn.addActionListener(e -> {
+			int selectedRow = historyTable.getSelectedRow();
+			if (selectedRow != -1) {
+				try {
+					// Assuming ID is in the first column of your table
+					int id = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());
+					manager.deleteSimulation(id);
+					tableModel.removeRow(selectedRow);
+					JOptionPane.showMessageDialog(this, "Record Deleted!");
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(this, "Error deleting: " + ex.getMessage());
+				}
+			}
+		});
+
+		searchBtn.addActionListener(e -> {
+			String input = JOptionPane.showInputDialog("Enter minimum velocity to search:");
+			if (input != null) {
+				try {
+					double minV = Double.parseDouble(input);
+					ResultSet rs = manager.searchByVelocity(minV);
+
+					// Clear table and show results
+					tableModel.setRowCount(0);
+					while (rs.next()) {
+						tableModel.addRow(new Object[]{
+								rs.getInt("id"),
+								"Ball",
+								rs.getDouble("velocity"),
+								rs.getDouble("angle"),
+								rs.getDouble("max_range")
+						});
+					}
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(this, "Search error: " + ex.getMessage());
+				}
+			}
+		});
 	}
-	
+
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(()-> new MainGUI().setVisible(true));
 	}
