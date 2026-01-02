@@ -28,6 +28,15 @@ public class DatabaseManager {
 		}
 	}
 	
+	public void updateRange(int id, double newRange) throws SQLException {
+		String query = "UPDATE results SET max_range = ? WHERE id = ?";
+		try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement pstmt = conn.prepareStatement(query)) {
+			pstmt.setDouble(1, newRange);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+		}
+	}
+	
 	public void deleteSimulation(int id) throws SQLException {
 		String query = "DELETE FROM results WHERE id = ?";
 		try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement pstmt = conn.prepareStatement(query)) {
