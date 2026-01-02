@@ -13,23 +13,22 @@ public class DatabaseManager {
 	}
 	
 	public void saveToDatabase(Projectile p, double range) {
-	    String query = "INSERT INTO results (type, velocity, angle, max_range) VALUES (?, ?, ?, ?)";
+	    // We now have 6 placeholders: type, velocity, angle, mass, drag, range
+	    String query = "INSERT INTO results (type, velocity, angle, mass, drag_coefficient, max_range) VALUES (?, ?, ?, ?, ?, ?)";
 	    
 	    try (Connection conn = DriverManager.getConnection(url, user, password);
 	         PreparedStatement pstmt = conn.prepareStatement(query)) {
 	        
-	        // 2. Map the parameters correctly to the 4 question marks
-	        pstmt.setString(1, "Standard Ball"); // Matches 'type'
-	        pstmt.setDouble(2, p.velocity);      // Matches 'velocity'
-	        pstmt.setDouble(3, p.angle);         // Matches 'angle'
-	        pstmt.setDouble(4, range);           // Matches 'max_range'
+	        pstmt.setString(1, p.getClass().getSimpleName());
+	        pstmt.setDouble(2, p.velocity);
+	        pstmt.setDouble(3, p.angle);
+	        pstmt.setDouble(4, p.getMass());            // New Parameter
+	        pstmt.setDouble(5, p.getDragCoefficient());  // New Parameter
+	        pstmt.setDouble(6, range);
 	        
 	        pstmt.executeUpdate();
-	        System.out.println("Data saved successfully!");
-	        
 	    } catch (SQLException e) {
-	        // This will now provide much clearer error messages if something else goes wrong
-	        System.err.println("SQL Error: " + e.getMessage());
+	        e.printStackTrace();
 	    }
 	}
 	

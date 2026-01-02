@@ -14,17 +14,21 @@ import java.io.*;
 @SuppressWarnings({ "serial", "unused" })
 public class MainGUI extends JFrame {
 
-	private JTextField velocityField, angleField;
+	private JTextField velocityField, angleField, massField, dragField;
 	private JButton calculateBtn, exportBtn, clearBtn, deleteBtn, searchBtn, loadBtn, resetBtn;
 	private JTable historyTable;
 	private DefaultTableModel tableModel;
 	private DatabaseManager manager;
+	private JSpinner massSpinner;
+	private JSlider airResistanceSlider;
 
 	public MainGUI() {
 		manager = new DatabaseManager();
 
 		velocityField = new JTextField(10);
 		angleField = new JTextField(10);
+		massField = new JTextField(10);
+		dragField = new JTextField(10);
 		calculateBtn = new JButton("Calculate");
 		exportBtn = new JButton("Export to CSV");
 		searchBtn = new JButton("Search (Min Velocity)");
@@ -50,6 +54,8 @@ public class MainGUI extends JFrame {
 
 	private void initLayout() {
 		setLayout(new BorderLayout(10, 10));
+		massSpinner = new JSpinner(new SpinnerNumberModel(1.0, 0.1, 100.0, 0.5));
+		airResistanceSlider = new JSlider(0, 100, 0); // 0 to 1.0 scale
 
 		// Top Panel: Inputs
 		JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
@@ -60,6 +66,10 @@ public class MainGUI extends JFrame {
 		inputPanel.add(angleField);
 		inputPanel.add(calculateBtn);
 		inputPanel.add(clearBtn);
+		inputPanel.add(new JLabel("Mass (kg):"));
+		inputPanel.add(massSpinner);
+		inputPanel.add(new JLabel("Air Resistance (%):"));
+		inputPanel.add(airResistanceSlider);
 
 		// Bottom Panel: Database Actions
 		JPanel actionPanel = new JPanel();
@@ -77,32 +87,40 @@ public class MainGUI extends JFrame {
 
 	private void setupListeners() {
 		calculateBtn.addActionListener(e -> {
-			try {
-				double v = Double.parseDouble(velocityField.getText());
-				double a = Double.parseDouble(angleField.getText());
-				if (v < 0 || a < 0 || a > 90) {
-					throw new InvalidInputException("Please insert valid values");
-				}
+		    try {
+		        // 1. Standard parsing for text fields
+		        double v = Double.parseDouble(velocityField.getText());
+		        double a = Double.parseDouble(angleField.getText());
+		        
+		        double m = (Double) massSpinner.getValue(); 
 
-				StandardBall ball = new StandardBall(v,a);
-				double range = ball.calculateRange();
+		        double d = airResistanceSlider.getValue() / 100.0;
 
-				int newId = manager.addSimulationAndGetId(ball, range);
+		        if (v < 0 || a < 0 || a > 90 || m <= 0) {
+		            throw new InvalidInputException("Invalid Physics Parameters! Check your inputs.");
+		        }
+
+		        Projectile projectile = new StandardBall(v, a, m, d);
+		        double range = projectile.calculateRange();
+
+		        
+		        int newId = manager.addSimulationAndGetId(projectile, range);
+
+		        // Update Table
 		        tableModel.addRow(new Object[]{
-		            newId == -1 ? "Error" : newId, 
-		            "Ball", 
-		            v, 
-		            a, 
-		            String.format("%.2f", range)
+		            (newId == -1) ? "DB Error" : newId,
+		            projectile.getClass().getSimpleName(),
+		            v, a, String.format("%.2f", range)
 		        });
-		            
-			} catch (NumberFormatException ex) {
-				JOptionPane.showMessageDialog(this, "Input must be a number", "Input Error", JOptionPane.ERROR_MESSAGE);
 
-			} catch (InvalidInputException ex) {
-				JOptionPane.showMessageDialog(this, ex.getMessage(), "Logic Error", JOptionPane.WARNING_MESSAGE);
-			}
+		    } catch (NumberFormatException ex) {
+		        JOptionPane.showMessageDialog(this, "Velocity and Angle must be valid numbers!");
+		    } catch (InvalidInputException ex) {
+		    	
+		        JOptionPane.showMessageDialog(this, ex.getMessage());
+		    }
 		});
+		
 		
 		clearBtn.addActionListener(e -> {
 		    // 1. Clear the Input Fields
