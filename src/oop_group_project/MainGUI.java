@@ -9,12 +9,13 @@ import java.sql.*;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.Vector;
+import java.io.*;
 
 @SuppressWarnings({ "serial", "unused" })
 public class MainGUI extends JFrame {
 
 	private JTextField velocityField, angleField;
-	private JButton calculateBtn, saveBtn, clearBtn, deleteBtn, searchBtn;
+	private JButton calculateBtn, exportBtn, clearBtn, deleteBtn, searchBtn;
 	private JTable historyTable;
 	private DefaultTableModel tableModel;
 	private DatabaseManager manager;
@@ -25,7 +26,7 @@ public class MainGUI extends JFrame {
 		velocityField = new JTextField(10);
 		angleField = new JTextField(10);
 		calculateBtn = new JButton("Calculate");
-		saveBtn = new JButton("Save & Refresh");
+		exportBtn = new JButton("Export to CSV");
 		searchBtn = new JButton("Search (Min Vel)");
 		deleteBtn = new JButton("Delete Selected");
 		clearBtn = new JButton("Clear Fields");
@@ -60,7 +61,7 @@ public class MainGUI extends JFrame {
 
 		// Bottom Panel: Database Actions
 		JPanel actionPanel = new JPanel();
-		actionPanel.add(saveBtn);
+		actionPanel.add(exportBtn);
 		actionPanel.add(searchBtn);
 		actionPanel.add(deleteBtn);
 
@@ -112,6 +113,46 @@ public class MainGUI extends JFrame {
 					JOptionPane.showMessageDialog(this, "Error deleting: " + ex.getMessage());
 				}
 			}
+		});
+		
+		exportBtn.addActionListener(e -> {
+		    if (tableModel.getRowCount() == 0) {
+		        JOptionPane.showMessageDialog(this, "No data available to export!");
+		        return;
+		    }
+
+		    JFileChooser fileChooser = new JFileChooser();
+		    fileChooser.setDialogTitle("Specify a file to save");
+		    
+		    int userSelection = fileChooser.showSaveDialog(this);
+
+		    if (userSelection == JFileChooser.APPROVE_OPTION) {
+		        java.io.File fileToSave = fileChooser.getSelectedFile();
+		        // Ensure the file ends with .csv
+		        String filePath = fileToSave.getAbsolutePath();
+		        if (!filePath.toLowerCase().endsWith(".csv")) {
+		            fileToSave = new java.io.File(filePath + ".csv");
+		        }
+
+		        try (java.io.PrintWriter pw = new java.io.PrintWriter(fileToSave)) {
+		            // 1. Write the Header Row
+		            pw.println("ID,Type,Velocity(m/s),Angle(deg),MaxRange(m)");
+
+		            // 2. Write Data Rows
+		            for (int i = 0; i < tableModel.getRowCount(); i++) {
+		                StringBuilder row = new StringBuilder();
+		                for (int j = 0; j < tableModel.getColumnCount(); j++) {
+		                    row.append(tableModel.getValueAt(i, j));
+		                    if (j < tableModel.getColumnCount() - 1) row.append(",");
+		                }
+		                pw.println(row.toString());
+		            }
+
+		            JOptionPane.showMessageDialog(this, "Data exported successfully to: " + fileToSave.getName());
+		        } catch (java.io.IOException ex) {
+		            JOptionPane.showMessageDialog(this, "Error writing to file: " + ex.getMessage());
+		        }
+		    }
 		});
 
 		searchBtn.addActionListener(e -> {
