@@ -24,8 +24,11 @@ public class MainGUI extends JFrame {
 		
 		JPanel inputPanel = new JPanel(new GridLayout(3,2,5,5));
 		inputPanel.add(new JLabel("Initial Velocity (m/s): "));
+		inputPanel.add(new JLabel("Angle (°): "));
+		angleField = new JTextField();
 		velocityField = new JTextField();
 		inputPanel.add(velocityField);
+		inputPanel.add(angleField);
 		
 		calculateBtn = new JButton("Calculate");
 		clearBtn = new JButton("Clear");
