@@ -72,6 +72,29 @@ public class MainGUI extends JFrame {
 			}
 		});
 		
-		
+		saveBtn.addActionListener(e -> {
+			
+			int row = historyTable.getSelectedRow();
+			if (row != -1) {
+				try {
+					double v = (double) tableModel.getValueAt(row, 1);
+					double a = (double) tableModel.getValueAt(row, 2);
+					double r = Double.parseDouble((String) tableModel.getValueAt(row, 3));
+					
+					StandardBall tempBall = new StandardBall(v,a);
+					manager.saveToDatabase(tempBall, r);
+					JOptionPane.showMessageDialog(this, "Saved");
+					
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
+				}
+			} else {
+				JOptionPane.showMessageDialog(this, "Please select a row first");
+			}
+		});
+	}
+	
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(()-> new MainGUI().setVisible(true));
 	}
 }
