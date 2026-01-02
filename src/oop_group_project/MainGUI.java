@@ -15,7 +15,7 @@ import java.io.*;
 public class MainGUI extends JFrame {
 
 	private JTextField velocityField, angleField;
-	private JButton calculateBtn, exportBtn, clearBtn, deleteBtn, searchBtn;
+	private JButton calculateBtn, exportBtn, clearBtn, deleteBtn, searchBtn, loadBtn, resetBtn;
 	private JTable historyTable;
 	private DefaultTableModel tableModel;
 	private DatabaseManager manager;
@@ -27,9 +27,11 @@ public class MainGUI extends JFrame {
 		angleField = new JTextField(10);
 		calculateBtn = new JButton("Calculate");
 		exportBtn = new JButton("Export to CSV");
-		searchBtn = new JButton("Search (Min Vel)");
+		searchBtn = new JButton("Search (Min Velocity)");
 		deleteBtn = new JButton("Delete Selected");
 		clearBtn = new JButton("Clear Fields");
+		loadBtn = new JButton("Reload History");
+		resetBtn = new JButton("RESET");
 
 		String[] columns = {"ID","Type","Velocity", "Angle", "Max Range (m)"};
 		tableModel = new DefaultTableModel(columns,0);
@@ -64,6 +66,8 @@ public class MainGUI extends JFrame {
 		actionPanel.add(exportBtn);
 		actionPanel.add(searchBtn);
 		actionPanel.add(deleteBtn);
+		actionPanel.add(loadBtn);
+		actionPanel.add(resetBtn);
 
 		// Adding to Frame
 		add(inputPanel, BorderLayout.NORTH);
@@ -98,6 +102,17 @@ public class MainGUI extends JFrame {
 			} catch (InvalidInputException ex) {
 				JOptionPane.showMessageDialog(this, ex.getMessage(), "Logic Error", JOptionPane.WARNING_MESSAGE);
 			}
+		});
+		
+		clearBtn.addActionListener(e -> {
+		    // 1. Clear the Input Fields
+		    velocityField.setText("");
+		    angleField.setText("");
+		    tableModel.setRowCount(0);
+		    
+		    velocityField.requestFocus();
+		    
+		    System.out.println("UI Cleared");
 		});
 		
 		deleteBtn.addActionListener(e -> {
@@ -177,6 +192,27 @@ public class MainGUI extends JFrame {
 					JOptionPane.showMessageDialog(this, "Search error: " + ex.getMessage());
 				}
 			}
+		});
+		
+		loadBtn.addActionListener(e -> {
+		    refreshTable();
+		    JOptionPane.showMessageDialog(this, "Data loaded from database.");
+		});
+		
+		resetBtn.addActionListener(e -> {
+		    int confirm = JOptionPane.showConfirmDialog(this, 
+		        "This will delete ALL history and reset IDs. Are you sure?", 
+		        "Warning", JOptionPane.YES_NO_OPTION);
+		        
+		    if (confirm == JOptionPane.YES_OPTION) {
+		        try {
+		            manager.resetDatabase();
+		            refreshTable(); // Clear the UI table
+		            JOptionPane.showMessageDialog(this, "Database has been reset!");
+		        } catch (SQLException ex) {
+		            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+		        }
+		    }
 		});
 	}
 	

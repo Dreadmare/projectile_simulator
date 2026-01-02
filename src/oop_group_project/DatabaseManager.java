@@ -85,4 +85,12 @@ public class DatabaseManager {
 	    }
 	    return -1; 
 	}
+	
+	public void resetDatabase() throws SQLException {
+	    String query = "TRUNCATE TABLE results";
+	    try (Connection conn = DriverManager.getConnection(url, user, password);
+	         Statement stmt = conn.createStatement()) {
+	        stmt.executeUpdate(query);
+	    }
+	}
 }
