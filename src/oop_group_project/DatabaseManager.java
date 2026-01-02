@@ -18,6 +18,9 @@ public class DatabaseManager {
 			String query = "INSERT INTO results (type, velocity, angle, max_range) VALUES (?,?,?,?,?)";
 			PreparedStatement pstmt = conn.prepareStatement(query);
 			pstmt.setString(1, "Standard Ball");
+			pstmt.setDouble(2, p.velocity);
+			pstmt.setDouble(3, p.angle);
+			pstmt.setDouble(4, range);
 			pstmt.executeUpdate();
 			System.out.println("Data saved");
 		} catch (SQLException e) {
