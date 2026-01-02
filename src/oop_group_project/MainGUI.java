@@ -36,6 +36,11 @@ public class MainGUI extends JFrame {
 
 		initLayout();
 		setupListeners();
+		this.setTitle("Projectile Trajectory Simulator");
+	    this.setSize(800, 600); // Sets width and height
+	    this.setMinimumSize(new Dimension(500, 400)); // Prevents user from making it too small
+	    this.setLocationRelativeTo(null); // This centers the window on your screen!
+	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 	private void initLayout() {
