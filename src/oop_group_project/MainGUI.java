@@ -10,7 +10,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.Vector;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "unused" })
 public class MainGUI extends JFrame {
 
 	private JTextField velocityField, angleField;
@@ -25,7 +25,7 @@ public class MainGUI extends JFrame {
 		velocityField = new JTextField(10);
 		angleField = new JTextField(10);
 		calculateBtn = new JButton("Calculate");
-		saveBtn = new JButton("Save to DB");
+		saveBtn = new JButton("Save & Refresh");
 		searchBtn = new JButton("Search (Min Vel)");
 		deleteBtn = new JButton("Delete Selected");
 		clearBtn = new JButton("Clear Fields");
@@ -38,8 +38,8 @@ public class MainGUI extends JFrame {
 		setupListeners();
 		this.setTitle("Projectile Trajectory Simulator");
 	    this.setSize(800, 600); // Sets width and height
-	    this.setMinimumSize(new Dimension(500, 400)); // Prevents user from making it too small
-	    this.setLocationRelativeTo(null); // This centers the window on your screen!
+	    this.setMinimumSize(new Dimension(500, 400));
+	    this.setLocationRelativeTo(null);
 	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
@@ -98,26 +98,27 @@ public class MainGUI extends JFrame {
 		});
 
 		saveBtn.addActionListener(e -> {
-
-			int row = historyTable.getSelectedRow();
-			if (row != -1) {
-				try {
-					double v = (double) tableModel.getValueAt(row, 1);
-					double a = (double) tableModel.getValueAt(row, 2);
-					double r = Double.parseDouble((String) tableModel.getValueAt(row, 3));
-
-					StandardBall tempBall = new StandardBall(v,a);
-					manager.saveToDatabase(tempBall, r);
-					JOptionPane.showMessageDialog(this, "Saved");
-
-				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
-				}
-			} else {
-				JOptionPane.showMessageDialog(this, "Please select a row first");
-			}
+		    int row = historyTable.getSelectedRow();
+		    if (row != -1) {
+		        try {
+		        	double v = Double.parseDouble(tableModel.getValueAt(row, 2).toString());
+		            double a = Double.parseDouble(tableModel.getValueAt(row, 3).toString());
+		            double r = Double.parseDouble(tableModel.getValueAt(row, 4).toString());
+		            
+		            StandardBall tempBall = new StandardBall(v, a);
+		            manager.saveToDatabase(tempBall, r); 
+		            JOptionPane.showMessageDialog(this, "Saved Successfully!");
+		            
+		            refreshTable();
+		            
+		        } catch (Exception ex) {
+		            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
+		        }
+		    } else {
+		        JOptionPane.showMessageDialog(this, "Please select a row first");
+		    }
 		});
-
+		
 		deleteBtn.addActionListener(e -> {
 			int selectedRow = historyTable.getSelectedRow();
 			if (selectedRow != -1) {
@@ -156,6 +157,28 @@ public class MainGUI extends JFrame {
 				}
 			}
 		});
+	}
+	
+	private void refreshTable() {
+	    try {
+	        // Clear the existing rows in the UI
+	        tableModel.setRowCount(0);
+	        
+	        // Fetch fresh data from the DB
+	        ResultSet rs = manager.fetchAllData();
+	        
+	        while (rs.next()) {
+	            tableModel.addRow(new Object[]{
+	                rs.getInt("id"),
+	                rs.getString("type"),
+	                rs.getDouble("velocity"),
+	                rs.getDouble("angle"),
+	                rs.getDouble("max_range")
+	            });
+	        }
+	    } catch (SQLException ex) {
+	        JOptionPane.showMessageDialog(this, "Error refreshing data: " + ex.getMessage());
+	    }
 	}
 
 	public static void main(String[] args) {
