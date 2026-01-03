@@ -13,7 +13,6 @@ public class DatabaseManager {
 	}
 	
 	public void saveToDatabase(Projectile p, double range) {
-	    // We now have 6 placeholders: type, velocity, angle, mass, drag, range
 	    String query = "INSERT INTO results (type, velocity, angle, mass, drag_coefficient, max_range) VALUES (?, ?, ?, ?, ?, ?)";
 	    
 	    try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -22,8 +21,8 @@ public class DatabaseManager {
 	        pstmt.setString(1, p.getClass().getSimpleName());
 	        pstmt.setDouble(2, p.velocity);
 	        pstmt.setDouble(3, p.angle);
-	        pstmt.setDouble(4, p.getMass());            // New Parameter
-	        pstmt.setDouble(5, p.getDragCoefficient());  // New Parameter
+	        pstmt.setDouble(4, p.getMass());           
+	        pstmt.setDouble(5, p.getDragCoefficient());
 	        pstmt.setDouble(6, range);
 	        
 	        pstmt.executeUpdate();
