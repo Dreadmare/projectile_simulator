@@ -13,17 +13,16 @@ public class DatabaseManager {
 	}
 	
 	public void saveToDatabase(Projectile p, double range) {
-	    String query = "INSERT INTO results (type, velocity, angle, mass, drag_coefficient, max_range) VALUES (?, ?, ?, ?, ?, ?)";
+	    String query = "INSERT INTO results (mass, drag, velocity, angle, max_range) VALUES (?, ?, ?, ?, ?)";
 	    
 	    try (Connection conn = DriverManager.getConnection(url, user, password);
 	         PreparedStatement pstmt = conn.prepareStatement(query)) {
 	        
-	        pstmt.setString(1, p.getClass().getSimpleName());
-	        pstmt.setDouble(2, p.velocity);
-	        pstmt.setDouble(3, p.angle);
-	        pstmt.setDouble(4, p.getMass());           
-	        pstmt.setDouble(5, p.getDragCoefficient());
-	        pstmt.setDouble(6, range);
+	        pstmt.setDouble(1, p.getMass());   
+	        pstmt.setDouble(2, p.getDragCoefficient());
+	        pstmt.setDouble(3, p.velocity);
+	        pstmt.setDouble(4, p.angle);
+	        pstmt.setDouble(5, range);
 	        
 	        pstmt.executeUpdate();
 	    } catch (SQLException e) {
@@ -63,20 +62,20 @@ public class DatabaseManager {
 	}
 	
 	public int addSimulationAndGetId(Projectile p, double range) {
-	    String query = "INSERT INTO results (type, velocity, angle, max_range) VALUES (?, ?, ?, ?)";
-	    // RETURN_GENERATED_KEYS allows us to get the ID created by the database
+	    String query = "INSERT INTO results (mass, drag, velocity, angle, max_range) VALUES (?, ?, ?, ?, ?)";
 	    try (Connection conn = DriverManager.getConnection(url, user, password);
 	         PreparedStatement pstmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 	        
-	        pstmt.setString(1, "Ball");
-	        pstmt.setDouble(2, p.velocity);
-	        pstmt.setDouble(3, p.angle);
-	        pstmt.setDouble(4, range);
+	        pstmt.setDouble(1, p.getMass());
+	        pstmt.setDouble(2, p.getDragCoefficient());
+	        pstmt.setDouble(3, p.velocity);
+	        pstmt.setDouble(4, p.angle);
+	        pstmt.setDouble(5, range);
 	        pstmt.executeUpdate();
 
 	        ResultSet rs = pstmt.getGeneratedKeys();
 	        if (rs.next()) {
-	            return rs.getInt(1); // Return the new ID
+	            return rs.getInt(1);
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();

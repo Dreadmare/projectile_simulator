@@ -37,14 +37,14 @@ public class MainGUI extends JFrame {
 		loadBtn = new JButton("Reload History");
 		resetBtn = new JButton("RESET");
 
-		String[] columns = {"ID","Type","Velocity", "Angle", "Max Range (m)"};
+		String[] columns = {"ID","Mass (kg)","Drag (%)","Velocity (m/s)", "Angle", "Max Range (m)"};
 		tableModel = new DefaultTableModel(columns,0);
 		historyTable = new JTable(tableModel);
 
 		initLayout();
 		setupListeners();
 		this.setTitle("Projectile Trajectory Simulator");
-	    this.setSize(800, 600); // Sets width and height
+	    this.setSize(800, 600); 
 	    this.setMinimumSize(new Dimension(500, 400));
 	    this.setLocationRelativeTo(null);
 	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -88,16 +88,14 @@ public class MainGUI extends JFrame {
 	private void setupListeners() {
 		calculateBtn.addActionListener(e -> {
 		    try {
-		        // 1. Standard parsing for text fields
 		        double v = Double.parseDouble(velocityField.getText());
 		        double a = Double.parseDouble(angleField.getText());
-		        
 		        double m = (Double) massSpinner.getValue(); 
 
 		        double d = airResistanceSlider.getValue() / 100.0;
 
 		        if (v < 0 || a < 0 || a > 90 || m <= 0) {
-		            throw new InvalidInputException("Invalid Physics Parameters! Check your inputs.");
+		            throw new InvalidInputException("Invalid Parameters! Check your inputs.");
 		        }
 
 		        Projectile projectile = new StandardBall(v, a, m, d);
@@ -106,17 +104,18 @@ public class MainGUI extends JFrame {
 		        
 		        int newId = manager.addSimulationAndGetId(projectile, range);
 
-		        // Update Table
 		        tableModel.addRow(new Object[]{
 		            (newId == -1) ? "DB Error" : newId,
-		            projectile.getClass().getSimpleName(),
-		            v, a, String.format("%.2f", range)
+		            m,
+		            (d*100) + "%",
+		            v, 
+		            a, 
+		            String.format("%.2f", range)
 		        });
 
 		    } catch (NumberFormatException ex) {
 		        JOptionPane.showMessageDialog(this, "Velocity and Angle must be valid numbers!");
 		    } catch (InvalidInputException ex) {
-		    	
 		        JOptionPane.showMessageDialog(this, ex.getMessage());
 		    }
 		});
@@ -126,6 +125,8 @@ public class MainGUI extends JFrame {
 		    // 1. Clear the Input Fields
 		    velocityField.setText("");
 		    angleField.setText("");
+		    massField.setText("");
+		    dragField.setText("");
 		    tableModel.setRowCount(0);
 		    
 		    velocityField.requestFocus();
@@ -169,7 +170,7 @@ public class MainGUI extends JFrame {
 
 		        try (java.io.PrintWriter pw = new java.io.PrintWriter(fileToSave)) {
 		            // 1. Write the Header Row
-		            pw.println("ID,Type,Velocity(m/s),Angle(deg),MaxRange(m)");
+		            pw.println("ID, Mass (kg), Drag Resistance (%), Velocity (m/s), Angle(deg),MaxRange(m)");
 
 		            // 2. Write Data Rows
 		            for (int i = 0; i < tableModel.getRowCount(); i++) {
@@ -200,7 +201,8 @@ public class MainGUI extends JFrame {
 					while (rs.next()) {
 						tableModel.addRow(new Object[]{
 								rs.getInt("id"),
-								"Ball",
+								rs.getDouble("mass"),
+								rs.getDouble("dragCoeff"),
 								rs.getDouble("velocity"),
 								rs.getDouble("angle"),
 								rs.getDouble("max_range")
@@ -236,19 +238,18 @@ public class MainGUI extends JFrame {
 	
 	private void refreshTable() {
 	    try {
-	        // Clear the existing rows in the UI
 	        tableModel.setRowCount(0);
 	        
-	        // Fetch fresh data from the DB
 	        ResultSet rs = manager.fetchAllData();
 	        
 	        while (rs.next()) {
 	            tableModel.addRow(new Object[]{
 	                rs.getInt("id"),
-	                rs.getString("type"),
+	                rs.getDouble("mass"),
+	                (rs.getDouble("drag")*100) + "%",
 	                rs.getDouble("velocity"),
 	                rs.getDouble("angle"),
-	                rs.getDouble("max_range")
+	                String.format("%.2f", rs.getDouble("max_range"))
 	            });
 	        }
 	    } catch (SQLException ex) {

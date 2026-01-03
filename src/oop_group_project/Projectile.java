@@ -1,15 +1,13 @@
 package oop_group_project;
 
 public abstract class Projectile implements ProjectileBehaviour {
-	protected String type;
 	protected double velocity;
 	protected double angle;
 	protected double mass;
     protected double dragCoeff;
 	protected final double GRAVITY = 9.81;
 	
-	public Projectile(String type, double velocity, double angle, double mass, double dragCoeff) {
-		this.type = type;
+	public Projectile(double velocity, double angle, double mass, double dragCoeff) {
 		this.velocity = velocity;
 		this.angle = angle;
 		this.mass = mass;
@@ -19,7 +17,6 @@ public abstract class Projectile implements ProjectileBehaviour {
 	@Override
     public abstract double calculateRange();
 
-    // Common logic can be implemented here
     @Override
     public double calculateMaxHeight() {
         double radians = Math.toRadians(angle);
@@ -27,7 +24,7 @@ public abstract class Projectile implements ProjectileBehaviour {
     }
 
     public String getDetails() {
-        return String.format("Type: %s | Vel: %.1f m/s | Angle: %.1f°", type, velocity, angle);
+        return String.format("Type: %s | Vel: %.1f m/s | Angle: %.1f°", velocity, angle);
     }
 
     @Override
