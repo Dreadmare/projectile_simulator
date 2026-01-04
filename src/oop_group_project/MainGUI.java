@@ -122,7 +122,6 @@ public class MainGUI extends JFrame {
 		
 		
 		clearBtn.addActionListener(e -> {
-		    // 1. Clear the Input Fields
 		    velocityField.setText("");
 		    angleField.setText("");
 		    massField.setText("");
@@ -138,7 +137,6 @@ public class MainGUI extends JFrame {
 			int selectedRow = historyTable.getSelectedRow();
 			if (selectedRow != -1) {
 				try {
-					// Assuming ID is in the first column of your table
 					int id = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());
 					manager.deleteSimulation(id);
 					tableModel.removeRow(selectedRow);
@@ -162,17 +160,15 @@ public class MainGUI extends JFrame {
 
 		    if (userSelection == JFileChooser.APPROVE_OPTION) {
 		        java.io.File fileToSave = fileChooser.getSelectedFile();
-		        // Ensure the file ends with .csv
+
 		        String filePath = fileToSave.getAbsolutePath();
 		        if (!filePath.toLowerCase().endsWith(".csv")) {
 		            fileToSave = new java.io.File(filePath + ".csv");
 		        }
 
 		        try (java.io.PrintWriter pw = new java.io.PrintWriter(fileToSave)) {
-		            // 1. Write the Header Row
 		            pw.println("ID, Mass (kg), Drag Resistance (%), Velocity (m/s), Angle(deg),MaxRange(m)");
 
-		            // 2. Write Data Rows
 		            for (int i = 0; i < tableModel.getRowCount(); i++) {
 		                StringBuilder row = new StringBuilder();
 		                for (int j = 0; j < tableModel.getColumnCount(); j++) {

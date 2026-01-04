@@ -32,7 +32,7 @@ public abstract class Projectile implements ProjectileBehaviour {
         return String.format("Mass: %.2f kg | Drag: %.2f", mass, dragCoeff);
     }
 
-    // Getters for DatabaseManager to use
+    
     public double getVelocity() { return velocity; }
     public double getAngle() { return angle; }
     public double getMass() { return mass; }
