@@ -202,7 +202,7 @@ public class MainGUI extends JFrame {
 						tableModel.addRow(new Object[]{
 								rs.getInt("id"),
 								rs.getDouble("mass"),
-								rs.getDouble("dragCoeff"),
+								rs.getDouble("drag"),
 								rs.getDouble("velocity"),
 								rs.getDouble("angle"),
 								rs.getDouble("max_range")
